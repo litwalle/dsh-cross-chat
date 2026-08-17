@@ -9,8 +9,10 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { randomUUID } from 'node:crypto'
+import { realpath } from 'node:fs/promises'
+import { isAbsolute, resolve } from 'node:path'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { RpcId, type ApiProxy, type RpcResult } from '@deepseek-ai/dsh-host-apiproxy'
+import { RpcId, type ApiProxy, type RpcResult, type WorkspaceId } from '@deepseek-ai/dsh-host-apiproxy'
 import type { Config } from './index.ts'
 
 const CREATE_TOOL_NAME = 'create_session'
@@ -20,6 +22,20 @@ function unwrap<T>(result: RpcResult<T>, prefix: string, sessionHint: string): T
   if (result.ok) return result.value
   const suffix = sessionHint === '' ? '' : `（会话 ${sessionHint}）`
   throw new Error(`${prefix}: ${result.error.code}: ${result.error.message}${suffix}`)
+}
+
+/**
+ * Canonicalize a directory the way the workspace registry does (`fs.realpath`:
+ * symlinks, `..`, and trailing slashes resolved), falling back to an absolute
+ * spelling when the path does not exist yet (a brand-new cwd can never match a
+ * workspace record, so the fallback only ever yields `undefined`).
+ */
+async function canonicalDirectory(path: string): Promise<string> {
+  try {
+    return await realpath(path)
+  } catch {
+    return isAbsolute(path) ? path : resolve(path)
+  }
 }
 
 /**
@@ -33,12 +49,13 @@ export function createSessionTool(ctx: Context, config: Config) {
     description:
       '新建一个顶层对话（与 GUI 新建对话相同）。可选 cwd（默认用你所在会话的工作目录）、'
       + 'title（标题）、first_message（开场消息：发送后新会话立即开始工作并出现在侧边栏；'
-      + '不传则创建空白会话，直到收到第一条消息才可见）。返回的 session_id 可用于 '
+      + '不传则创建空白会话，直到收到第一条消息才可见）。若 cwd 属于某个已注册工作区，'
+      + '新会话会挂入该工作区分组（否则落入「未分组」）。返回的 session_id 可用于 '
       + 'send_session_message / read_session 与其通信；新会话的 agent 也有同样的工具，可以回你消息。',
     parameters: {
       cwd: {
         type: 'string',
-        description: '新会话的工作目录；缺省为调用者会话的 cwd。',
+        description: '新会话的工作目录；缺省为调用者会话的 cwd。属于已注册工作区时自动挂入对应分组。',
       },
       title: {
         type: 'string',
@@ -80,8 +97,34 @@ export function createSessionTool(ctx: Context, config: Config) {
         throw new Error(`MESSAGE_TOO_LONG: 开场消息共 ${firstMessage.length} 字符，超过上限 ${config.maxMessageChars}。`)
       }
       const cwd = args.cwd ?? self.session.header.cwd
-      const payload: { cwd?: string } = {}
-      if (cwd !== undefined) payload.cwd = cwd
+
+      /**
+       * Resolve the workspace owning `cwd` (canonical path comparison) so the
+       * new session attaches to that workspace group instead of landing in the
+       * sidebar's ungrouped bucket. `session.create` accepts at most one of
+       * `workspaceId` / `cwd`; when the owning workspace exists we send the id
+       * (the server then derives the directory from the workspace record and
+       * attaches the session), otherwise we fall back to a plain `cwd` create.
+       * A workspace baseline failure never blocks creation: the fallback keeps
+       * the tool usable, matching the pre-workspace behavior.
+       */
+      const workspaceIdFor = async (directory: string): Promise<WorkspaceId | undefined> => {
+        const canonical = await canonicalDirectory(directory)
+        try {
+          const listed = await api.workspace.list({ rpcId: RpcId(randomUUID()), payload: {} })
+          const workspaces = unwrap(listed.result, 'WORKSPACE_LIST_FAILED', '').items
+          return workspaces.find((workspace) => workspace.path === canonical)?.workspaceId
+        } catch {
+          return undefined
+        }
+      }
+
+      const payload: { cwd?: string; workspaceId?: WorkspaceId } = {}
+      if (cwd !== undefined) {
+        const ownerId = await workspaceIdFor(cwd)
+        if (ownerId !== undefined) payload.workspaceId = ownerId
+        else payload.cwd = cwd
+      }
 
       const created = await api.sessions.create({ rpcId: RpcId(randomUUID()), payload })
       const sessionId = unwrap(created.result, 'CREATE_FAILED', '').sessionId

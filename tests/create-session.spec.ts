@@ -1,3 +1,6 @@
+import { mkdtemp, mkdir, realpath, rm, symlink } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
@@ -14,13 +17,14 @@ function fail<T>(code: string, message: string): RpcResponse<T> {
 }
 
 interface Calls {
-  createPayloads: Array<{ cwd?: string }>
+  createPayloads: Array<{ cwd?: string; workspaceId?: string }>
   promptPayloads: Array<{ sessionId: string; mode: string; text: string }>
   renamePayloads: Array<{ sessionId: string; title: string }>
   rpcIds: string[]
   createResult: RpcResponse<{ sessionId: string }>
   promptResult: RpcResponse<{ accepted: true }>
   renameResult: RpcResponse<{ title: string; seq: number }>
+  workspaceListResult: RpcResponse<{ items: Array<{ workspaceId: string; path: string }>; archivedSessionIds: string[] }>
 }
 
 function makeCalls(): Calls {
@@ -32,6 +36,10 @@ function makeCalls(): Calls {
     createResult: ok({ sessionId: 'session-new' }),
     promptResult: ok({ accepted: true }),
     renameResult: ok({ title: '新标题', seq: 1 }),
+    workspaceListResult: ok({
+      items: [{ workspaceId: 'ws-a', path: '/proj/a' }],
+      archivedSessionIds: [],
+    }),
   }
 }
 
@@ -59,8 +67,14 @@ function cfg(over: Partial<Config> = {}): Config {
 
 function makeApi(calls: Calls) {
   const api = {
+    workspace: {
+      list: async (request: { rpcId: string; payload: {} }) => {
+        calls.rpcIds.push(request.rpcId)
+        return calls.workspaceListResult
+      },
+    },
     sessions: {
-      create: async (request: { rpcId: string; payload: { cwd?: string } }) => {
+      create: async (request: { rpcId: string; payload: { cwd?: string; workspaceId?: string } }) => {
         calls.rpcIds.push(request.rpcId)
         calls.createPayloads.push({ ...request.payload })
         return calls.createResult
@@ -81,7 +95,7 @@ function makeApi(calls: Calls) {
 }
 
 describe('create_session', () => {
-  it('creates with sender cwd, sends first message, renames', async () => {
+  it('creates with the owning workspace id, sends first message, renames', async () => {
     const calls = makeCalls()
     const api = makeApi(calls)
     const tool = createSessionTool(ctxWith(calls, api), cfg())
@@ -90,9 +104,44 @@ describe('create_session', () => {
       { agent: sender('/proj/a') } as never,
     )
     expect(value).toEqual({ session_id: 'session-new', title: '新标题', first_message_sent: true })
-    expect(calls.createPayloads).toEqual([{ cwd: '/proj/a' }])
+    expect(calls.createPayloads).toEqual([{ workspaceId: 'ws-a' }])
     expect(calls.promptPayloads).toEqual([{ sessionId: 'session-new', mode: 'queue', text: '帮我做 X' }])
     expect(calls.renamePayloads).toEqual([{ sessionId: 'session-new', title: '任务 X' }])
+  })
+
+  it('falls back to a plain cwd create when no workspace owns the directory', async () => {
+    const calls = makeCalls()
+    const tool = createSessionTool(ctxWith(calls, makeApi(calls)), cfg())
+    await tool.execute({}, { agent: sender('/other/b') } as never)
+    expect(calls.createPayloads).toEqual([{ cwd: '/other/b' }])
+  })
+
+  it('matches a workspace through a symlinked cwd (canonical path comparison)', async () => {
+    const calls = makeCalls()
+    const root = await mkdtemp(join(tmpdir(), 'cross-chat-ws-'))
+    const real = join(root, 'real')
+    const link = join(root, 'link')
+    try {
+      await mkdir(real)
+      await symlink(real, link)
+      calls.workspaceListResult = ok({
+        items: [{ workspaceId: 'ws-real', path: await realpath(real) }],
+        archivedSessionIds: [],
+      })
+      const tool = createSessionTool(ctxWith(calls, makeApi(calls)), cfg())
+      await tool.execute({}, { agent: sender(link) } as never)
+      expect(calls.createPayloads).toEqual([{ workspaceId: 'ws-real' }])
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('still creates with cwd when the workspace baseline fails', async () => {
+    const calls = makeCalls()
+    calls.workspaceListResult = fail('internal', 'boom')
+    const tool = createSessionTool(ctxWith(calls, makeApi(calls)), cfg())
+    await tool.execute({}, { agent: sender('/proj/a') } as never)
+    expect(calls.createPayloads).toEqual([{ cwd: '/proj/a' }])
   })
 
   it('mints a distinct non-empty rpcId for every rpc envelope', async () => {
@@ -102,12 +151,12 @@ describe('create_session', () => {
       { first_message: '帮我做 X', title: '任务 X' },
       { agent: sender('/proj/a') } as never,
     )
-    expect(calls.rpcIds).toHaveLength(3)
+    expect(calls.rpcIds).toHaveLength(4)
     for (const rpcId of calls.rpcIds) {
       expect(typeof rpcId).toBe('string')
       expect(rpcId.length).toBeGreaterThan(0)
     }
-    expect(new Set(calls.rpcIds).size).toBe(3)
+    expect(new Set(calls.rpcIds).size).toBe(4)
   })
 
   it('omits cwd from payload when the sender has none', async () => {
