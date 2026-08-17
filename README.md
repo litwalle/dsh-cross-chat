@@ -1,27 +1,32 @@
 # dsh-cross-chat
 
-**Give DeepSeek Harness agents Claude Code / Codex-style autonomy**: create their own conversations and message each other across sessions.
+**Give DeepSeek Harness agents Claude Code / Codex-style autonomy — one coordinator session, many parallel worker sessions.**
 
-> [简体中文](./README.zh-CN.md)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue)
+![Version](https://img.shields.io/github/v/tag/litwalle/dsh-cross-chat?label=version&color=blue)
+![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-plugin-4c6ef5)
 
-## Positioning
+![Session Discovery](https://img.shields.io/badge/Session%20Discovery-228be6)
+![Cross-Session Messaging](https://img.shields.io/badge/Cross--Session%20Messaging-228be6)
+![Readback](https://img.shields.io/badge/Readback-228be6)
+![Session Creation](https://img.shields.io/badge/Session%20Creation-228be6)
+![Adaptive Image Delivery](https://img.shields.io/badge/Adaptive%20Image%20Delivery-228be6)
+![Provenance Cards](https://img.shields.io/badge/Provenance%20Cards-228be6)
 
-Claude Code and Codex agents can open new conversations and pass messages between them, splitting a big task into parallel sessions. DeepSeek Harness lacked this — sessions were islands, and an agent could never leave its own chat.
-
-`dsh-cross-chat` adds that layer with 4 model tools. A "coordinator" session can now spin up "worker" sessions, delegate work, and read their replies — one agent, working like a team.
+`dsh-cross-chat` brings Claude Code / Codex-style autonomy to DeepSeek Harness agents: a single **coordinator** session spawns **worker** sessions, messages them across conversations, and reads back their results — splitting a large task into parallel sessions.
 
 ## Capabilities
 
 | Tool | What it does |
 |---|---|
-| `list_sessions` | List other messageable sessions (id, label, cwd, busy); optional fuzzy filter by id or label |
-| `send_session_message` | Deliver a message to another session and wake its agent (queues if the target is busy); supports images and files |
+| `list_sessions` | List messageable sessions with fuzzy filtering by id or label |
+| `send_session_message` | Deliver a message to another session and wake its agent (queues when busy); supports images and files |
 | `read_session` | Read the target session's recent user/assistant messages (default 20, max 50) |
-| `create_session` | Create a new top-level conversation (same path as the GUI "+"), with optional title and first message |
+| `create_session` | Create a new top-level conversation (the GUI "+" path) with optional title and first message; auto-attaches to the cwd's workspace group when one is registered |
 
-**Adaptive image delivery** — image capability is probed before sending: vision-capable models get native image blocks; text-only models (e.g. the official DeepSeek adapter) get the file delivered to their workspace with a path note. Text-only targets never crash on image content.
+**Adaptive image delivery** — image capability is probed before sending: vision-capable models receive native image blocks; text-only models automatically receive the image as a workspace file with a path note. Delivery never fails.
 
-**Full round-trip** — delivered messages carry provenance and render as a gray card in the receiver's GUI (sender name, expand/collapse). The receiving agent replies with the same tools.
+**Full round-trip** — delivered messages carry provenance and render as a gray card in the receiver's GUI, ready to be answered with the same tools.
 
 ## Install
 
@@ -31,9 +36,15 @@ One command, the official DSH plugin way (`dsh plugin` forwards to pnpm in your 
 dsh plugin --profile web add github:litwalle/dsh-cross-chat
 ```
 
-Then restart `dsh web` (kill the running `dsh web` process and start it again).
+Pin a release version instead (recommended):
 
-The built `lib/` output is committed to this repo, so install-from-Git works without a build step. To build from source instead: `pnpm install && pnpm run build`.
+```bash
+dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.0
+```
+
+Then restart `dsh web`.
+
+The built `lib/` output is committed to this repo, so install-from-Git works without a build step. To build from source: `pnpm install && pnpm run build`.
 
 ## Configuration
 
@@ -53,3 +64,7 @@ Overridable in your profile's `cordis.patch.yml`:
 ## License
 
 MIT
+
+---
+
+[English](./README.md) · [中文](./README.zh-CN.md)

@@ -1,27 +1,32 @@
 # dsh-cross-chat
 
-**让 DeepSeek Harness 的 agent 拥有 Claude Code / Codex 式的自主协作能力**：自己创建对话，并在不同对话之间互发消息。
+**让 DeepSeek Harness 的 agent 拥有 Claude Code / Codex 式的自主协作能力——一个"协调者"会话，多个并行的"执行者"会话。**
 
-> [English](./README.md)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue)
+![Version](https://img.shields.io/github/v/tag/litwalle/dsh-cross-chat?label=version&color=blue)
+![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-%E6%8F%92%E4%BB%B6-4c6ef5)
 
-## 定位
+![会话发现](https://img.shields.io/badge/%E4%BC%9A%E8%AF%9D%E5%8F%91%E7%8E%B0-228be6)
+![跨会话通信](https://img.shields.io/badge/%E8%B7%A8%E4%BC%9A%E8%AF%9D%E9%80%9A%E4%BF%A1-228be6)
+![结果回收](https://img.shields.io/badge/%E7%BB%93%E6%9E%9C%E5%9B%9E%E6%94%B6-228be6)
+![会话创建](https://img.shields.io/badge/%E4%BC%9A%E8%AF%9D%E5%88%9B%E5%BB%BA-228be6)
+![图片自适应投递](https://img.shields.io/badge/%E5%9B%BE%E7%89%87%E8%87%AA%E9%80%82%E5%BA%94%E6%8A%95%E9%80%92-228be6)
+![来源标记卡片](https://img.shields.io/badge/%E6%9D%A5%E6%BA%90%E6%A0%87%E8%AE%B0%E5%8D%A1%E7%89%87-228be6)
 
-Claude Code 和 Codex 的 agent 可以自己开新对话、在对话之间传消息，把一个大任务拆成多个会话并行推进。DeepSeek Harness 缺这一层——会话之间是孤岛，agent 只能待在自己的对话里。
-
-`dsh-cross-chat` 用 4 个模型工具补上这一层。从此一个"协调者"会话可以拉起多个"执行者"会话、派活、读回它们的回复——一个 agent，像一个团队一样工作。
+`dsh-cross-chat` 为 DeepSeek Harness 的 agent 补齐 Claude Code / Codex 式的自主协作能力：一个"协调者"会话即可创建多个"执行者"会话、跨会话互发消息并读回结果，将大型任务拆分为并行会话推进。
 
 ## 能力
 
 | 工具 | 作用 |
 |---|---|
-| `list_sessions` | 列出当前可发消息的其他会话（id、标签、工作目录、是否忙碌）；支持按 id 或标签模糊过滤 |
-| `send_session_message` | 给目标会话发消息并叫醒它的 agent（目标忙则排队）；支持附带图片和文件 |
-| `read_session` | 读取目标会话最近的 user/assistant 消息（默认 20 条，上限 50 条） |
-| `create_session` | 新建顶层对话（与 GUI"＋"同路径），可选标题与开场消息 |
+| `list_sessions` | 列出当前可通信会话，支持按 ID 或标签模糊过滤 |
+| `send_session_message` | 发送消息并唤醒对方 agent（目标忙则排队），支持附带图片与文件 |
+| `read_session` | 读取目标会话最近消息（默认 20 条，上限 50 条） |
+| `create_session` | 新建对话，可选标题与开场消息；cwd 属于已注册工作区时自动挂入对应分组 |
 
-**图片自适应投递**——发送前先探测目标模型能力：支持图片输入的模型收到原生图片；纯文本模型（如 DeepSeek 官方适配器）自动改为把图片写入对方工作区并附路径说明，纯文本目标永远不会因图片内容崩溃。
+**图片自适应投递**——发送前先探测目标模型能力：支持图片输入的模型收到原生图片；纯文本模型自动降级为文件投递（写入对方工作区并附路径说明）。投递永不失败。
 
-**收发闭环**——消息带来源标记，接收方 GUI 显示自绘灰卡片（发送方名称、展开/收起），接收方 agent 可以用同一套工具回消息。
+**收发闭环**——消息带来源标记，接收方以灰色卡片展示，并可原路回复。
 
 ## 安装
 
@@ -31,7 +36,13 @@ Claude Code 和 Codex 的 agent 可以自己开新对话、在对话之间传消
 dsh plugin --profile web add github:litwalle/dsh-cross-chat
 ```
 
-然后重启 `dsh web`（结束正在运行的 `dsh web` 进程再重新启动）。
+建议固定版本安装：
+
+```bash
+dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.0
+```
+
+然后重启 `dsh web`。
 
 本仓库已提交构建产物 `lib/`，从 Git 安装无需构建步骤。如要从源码构建：`pnpm install && pnpm run build`。
 
@@ -53,3 +64,7 @@ dsh plugin --profile web add github:litwalle/dsh-cross-chat
 ## License
 
 MIT
+
+---
+
+[English](./README.md) · [中文](./README.zh-CN.md)
