@@ -13,6 +13,8 @@
 ![Adaptive Image Delivery](https://img.shields.io/badge/Adaptive%20Image%20Delivery-228be6)
 ![Provenance Cards](https://img.shields.io/badge/Provenance%20Cards-228be6)
 
+![dsh-cross-chat card](docs/card-en.png)
+
 `dsh-cross-chat` brings Claude Code / Codex-style autonomy to DeepSeek Harness agents: a single **coordinator** session spawns **worker** sessions, messages them across conversations, and reads back their results — splitting a large task into parallel sessions.
 
 ## Capabilities
@@ -33,13 +35,14 @@
 One command, the official DSH plugin way (`dsh plugin` forwards to pnpm in your profile):
 
 ```bash
-dsh plugin --profile web add github:litwalle/dsh-cross-chat
+dsh plugin --profile web add @dsh-external/dsh-cross-chat@latest
 ```
 
-Pin a release version instead (recommended):
+From GitHub, or pinned to a release tag:
 
 ```bash
-dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.0
+dsh plugin --profile web add github:litwalle/dsh-cross-chat
+dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.1
 ```
 
 Then restart `dsh web`.

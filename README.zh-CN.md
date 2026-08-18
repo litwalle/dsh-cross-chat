@@ -13,6 +13,8 @@
 ![图片自适应投递](https://img.shields.io/badge/%E5%9B%BE%E7%89%87%E8%87%AA%E9%80%82%E5%BA%94%E6%8A%95%E9%80%92-228be6)
 ![来源标记卡片](https://img.shields.io/badge/%E6%9D%A5%E6%BA%90%E6%A0%87%E8%AE%B0%E5%8D%A1%E7%89%87-228be6)
 
+![dsh-cross-chat 卡片](docs/card-zh.png)
+
 `dsh-cross-chat` 为 DeepSeek Harness 的 agent 补齐 Claude Code / Codex 式的自主协作能力：一个"协调者"会话即可创建多个"执行者"会话、跨会话互发消息并读回结果，将大型任务拆分为并行会话推进。
 
 ## 能力
@@ -33,13 +35,14 @@
 一条命令，走 DSH 官方插件通道（`dsh plugin` 会在你的 profile 里转发给 pnpm）：
 
 ```bash
-dsh plugin --profile web add github:litwalle/dsh-cross-chat
+dsh plugin --profile web add @dsh-external/dsh-cross-chat@latest
 ```
 
-建议固定版本安装：
+从 GitHub 安装，或固定版本：
 
 ```bash
-dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.0
+dsh plugin --profile web add github:litwalle/dsh-cross-chat
+dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.1
 ```
 
 然后重启 `dsh web`。
