@@ -1,5 +1,7 @@
 # dsh-cross-chat
 
+[English](./README.md) · **中文**
+
 **让 DeepSeek Harness 的 agent 拥有 Claude Code / Codex 式的自主协作能力——一个"协调者"会话，多个并行的"执行者"会话。**
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
@@ -67,7 +69,3 @@ dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.2
 ## License
 
 MIT
-
----
-
-[English](./README.md) · [中文](./README.zh-CN.md)

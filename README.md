@@ -1,5 +1,7 @@
 # dsh-cross-chat
 
+**English** · [中文](./README.zh-CN.md)
+
 **Give DeepSeek Harness agents Claude Code / Codex-style autonomy — one coordinator session, many parallel worker sessions.**
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
@@ -67,7 +69,3 @@ Overridable in your profile's `cordis.patch.yml`:
 ## License
 
 MIT
-
----
-
-[English](./README.md) · [中文](./README.zh-CN.md)

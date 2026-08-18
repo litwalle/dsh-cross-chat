@@ -27,7 +27,7 @@
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "check": "pnpm run typecheck && pnpm run test && pnpm run build"
+    "check": "npm run typecheck && npm run test && npm run build"
   },
   "dsh": {
     "bundle": {
