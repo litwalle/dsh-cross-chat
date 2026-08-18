@@ -1,7 +1,7 @@
 /**
  * The three cross-chat model tools.
  *
- * @module @dsh-external/dsh-cross-chat/tools
+ * @module dsh-cross-chat/tools
  */
 
 import type { Context } from '@deepseek-ai/cordis'

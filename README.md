@@ -35,14 +35,14 @@
 One command, the official DSH plugin way (`dsh plugin` forwards to pnpm in your profile):
 
 ```bash
-dsh plugin --profile web add @dsh-external/dsh-cross-chat@latest
+dsh plugin --profile web add dsh-cross-chat@latest
 ```
 
 From GitHub, or pinned to a release tag:
 
 ```bash
 dsh plugin --profile web add github:litwalle/dsh-cross-chat
-dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.1
+dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.2
 ```
 
 Then restart `dsh web`.

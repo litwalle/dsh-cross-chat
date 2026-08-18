@@ -52,7 +52,7 @@ export default [
     },
     outputOptions: {
       entryFileNames: 'client.js',
-      banner: `window.__ModuleLoader__.load({ id: ${JSON.stringify('@dsh-external/dsh-cross-chat')}, factory: (require) => {`,
+      banner: `window.__ModuleLoader__.load({ id: ${JSON.stringify('dsh-cross-chat')}, factory: (require) => {`,
       footer: `return module.exports; } });`,
       intro: 'var module = { exports: {} }; var exports = module.exports;',
     },

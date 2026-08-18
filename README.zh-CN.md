@@ -35,14 +35,14 @@
 一条命令，走 DSH 官方插件通道（`dsh plugin` 会在你的 profile 里转发给 pnpm）：
 
 ```bash
-dsh plugin --profile web add @dsh-external/dsh-cross-chat@latest
+dsh plugin --profile web add dsh-cross-chat@latest
 ```
 
 从 GitHub 安装，或固定版本：
 
 ```bash
 dsh plugin --profile web add github:litwalle/dsh-cross-chat
-dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.1
+dsh plugin --profile web add github:litwalle/dsh-cross-chat#v1.1.2
 ```
 
 然后重启 `dsh web`。

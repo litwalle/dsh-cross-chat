@@ -3,7 +3,7 @@
  * built-in relay card rendering, plus pure helpers for sender labels and
  * message construction.
  *
- * @module @dsh-external/dsh-cross-chat/relay
+ * @module dsh-cross-chat/relay
  */
 
 import { createUserMessage, type Message, type MessageSource, type MessageSourceMap, type UserMessage } from '@deepseek-ai/dsh-llm'

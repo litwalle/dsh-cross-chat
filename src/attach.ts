@@ -1,7 +1,7 @@
 /**
  * Attachment helpers for cross-chat image/file delivery (spec §13).
  *
- * @module @dsh-external/dsh-cross-chat/attach
+ * @module dsh-cross-chat/attach
  */
 
 import { readFile, writeFile } from 'node:fs/promises'

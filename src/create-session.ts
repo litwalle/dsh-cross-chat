@@ -4,7 +4,7 @@
  * optionally title it and send a first prompt so it starts working and
  * appears in the sidebar.
  *
- * @module @dsh-external/dsh-cross-chat/create-session
+ * @module dsh-cross-chat/create-session
  */
 
 import type { Context } from '@deepseek-ai/cordis'

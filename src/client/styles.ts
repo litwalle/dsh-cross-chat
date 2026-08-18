@@ -1,6 +1,6 @@
 /** Inject the gray-card stylesheet once, keyed like the official plugins. */
 export function installStyles(): void {
-  const tagId = '@dsh-external/dsh-cross-chat/RelayCard.css'
+  const tagId = 'dsh-cross-chat/RelayCard.css'
   if (document.querySelector(`style[data-plugin-css=${JSON.stringify(tagId)}]`) !== null) return
   const tag = document.createElement('style')
   tag.setAttribute('data-plugin-css', tagId)
