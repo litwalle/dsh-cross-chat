@@ -1,5 +1,6 @@
 import z from "@deepseek-ai/schemastery";
 import { Context } from "@deepseek-ai/cordis";
+
 //#region src/index.d.ts
 /** Cordis plugin name. */
 declare const name = "dsh-cross-chat";
